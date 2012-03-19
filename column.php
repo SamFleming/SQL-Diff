@@ -3,12 +3,12 @@ namespace SqlDiff;
 
 class Column
 {
-	private $original;
-	private $name;
-	private $type;
-	private $length;
-	private $unsigned;
-	private $null;
+	public $original;
+	public $name;
+	public $type;
+	public $length;
+	public $unsigned;
+	public $null;
 
 	public function __construct($original, $column_name, $type, $length, $unsigned, $null)
 	{

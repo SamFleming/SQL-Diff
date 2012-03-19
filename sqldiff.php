@@ -28,12 +28,64 @@ class Autoloader
 
 class SqlDiff
 {
-	public function __construct(Datasource $base, Datasource $target)
-	{
-		$base_tables = $base->get_tables();
-		/*$target_tables = $target->get_tables();*/
+	private $from;
+	private $to;
 
-		print_r($base_tables);
-		echo "Total Tables: ".count($base_tables);
+	public function __construct(Datasource $from, Datasource $to)
+	{
+		$this->from = $from;
+		$this->to = $to;
+
+		$this->compare();
+	}
+
+	private function compare()
+	{
+		$from_tables = $this->from->get_tables();
+		$to_tables = $this->to->get_tables();
+
+		$compared_tables = array();
+		foreach($from_tables as $from_table)
+		{
+			foreach($to_tables as $to_table)
+			{
+				if($from_table->name == $to_table->name)
+				{
+					$this->compare_tables($from_table, $to_table);
+					break;
+				}
+			}
+		}
+	}
+
+	private function compare_tables($from, $to)
+	{
+		// For each of the columns in $from check to see if they exist in $to
+		foreach($from->columns as $from_column)
+		{
+			foreach($to->columns as $to_column)
+			{
+				if($from_column->name == $to_column->name)
+				{
+					$this->compare_columns($from_column, $to_column);
+					break;
+				}
+			}
+		}
+	}
+
+	private function compare_columns($from, $to)
+	{
+		// Check the column type
+		if($from->type != $to->type)
+		{
+			echo $from->name." type: ".$from->type." -> ".$to->type.PHP_EOL;
+		}
+
+		// Check the column length
+		if($from->length != $to->length)
+		{
+			echo $from->name." length: ".$from->length." -> ".$to->length.PHP_EOL;
+		}
 	}
 }

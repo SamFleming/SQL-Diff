@@ -3,9 +3,9 @@ namespace SqlDiff;
 
 class Table
 {
-	private $name;
-	private $columns;
-	private $keys;
+	public $name;
+	public $columns;
+	public $keys;
 
 	public function __construct($name, $columns, $keys)
 	{
