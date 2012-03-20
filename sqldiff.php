@@ -44,7 +44,6 @@ class SqlDiff
 		$from_tables = $this->from->get_tables();
 		$to_tables = $this->to->get_tables();
 
-		$compared_tables = array();
 		foreach($from_tables as $from_table)
 		{
 			foreach($to_tables as $to_table)
@@ -60,6 +59,7 @@ class SqlDiff
 
 	private function compare_tables($from, $to)
 	{
+		$no_match = array();
 		// For each of the columns in $from check to see if they exist in $to
 		foreach($from->columns as $from_column)
 		{
@@ -68,9 +68,21 @@ class SqlDiff
 				if($from_column->name == $to_column->name)
 				{
 					$this->compare_columns($from_column, $to_column);
+					unset($no_match[$from_column->name]);
 					break;
 				}
+				else
+				{
+					$no_match[$from_column->name] = true;
+				}
 			}
+		}
+
+		if(!empty($no_match))
+		{
+			/**
+			 * @todo Deal with new columns that are in $from but not $to
+			 */
 		}
 	}
 
