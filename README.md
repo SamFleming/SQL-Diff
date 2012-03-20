@@ -8,7 +8,7 @@ Example use
 -----------
 In this example situation we have a MySQL dump of our developement (dev.sql) database and are wanting to compare it to the live (live.sql) database so we can perform a set of Alter commands to "sync" them.
 
-```php
+``` php
 use \SqlDiff as S;
 use \SqlDiff\Datasources as SD;
 
