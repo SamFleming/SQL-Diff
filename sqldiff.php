@@ -16,7 +16,7 @@ class Autoloader
 		$name = preg_replace("/([A-Z]{1})/", "_$1", $name);
 		// Remove any underscores directly after a \
 		$name = str_replace("\\_", "\\", $name);
-		// Append our main namespace
+		// Prepend our main namespace
 		$name = "sqldiff".strtolower($name);
 
 		$base = dirname(dirname(__FILE__))."/";
@@ -35,12 +35,12 @@ class SqlDiff
 	{
 		$this->from = $from;
 		$this->to = $to;
-
-		$this->compare();
 	}
 
-	private function compare()
+	public function compare()
 	{
+		$changes = array();
+
 		$from_tables = $this->from->get_tables();
 		$to_tables = $this->to->get_tables();
 
@@ -50,54 +50,67 @@ class SqlDiff
 			{
 				if($from_table->name == $to_table->name)
 				{
-					$this->compare_tables($from_table, $to_table);
+					$these_changes = $this->compare_tables($from_table, $to_table);
+					$changes = array_merge($changes, $these_changes);
 					break;
 				}
 			}
 		}
+
+		return $changes;
 	}
 
 	private function compare_tables($from, $to)
 	{
+		$changes = array();
 		$no_match = array();
 		// For each of the columns in $from check to see if they exist in $to
-		foreach($from->columns as $from_column)
+		foreach($from->columns as $from_key => $from_column)
 		{
-			foreach($to->columns as $to_column)
+			foreach($to->columns as $to_key => $to_column)
 			{
 				if($from_column->name == $to_column->name)
 				{
-					$this->compare_columns($from_column, $to_column);
+					$these_changes = $this->compare_columns($from, $to, $from_key, $to_key);
+					$changes = array_merge($changes, $these_changes);
 					unset($no_match[$from_column->name]);
 					break;
 				}
 				else
 				{
-					$no_match[$from_column->name] = true;
+					$no_match[$from_column->name] = array($from, $from_key);
 				}
 			}
 		}
 
 		if(!empty($no_match))
 		{
-			/**
-			 * @todo Deal with new columns that are in $from but not $to
-			 */
+			foreach($no_match as $name => $details)
+			{
+				$changes[] = new \SqlDiff\Change("add", null, $details[0], $details[1], null, null);
+			}
 		}
+		return $changes;
 	}
 
-	private function compare_columns($from, $to)
+	private function compare_columns($from, $to, $from_key, $to_key)
 	{
+		$changes = array();
+		$from_col = $from->columns[$from_key];
+		$to_col = $to->columns[$to_key];
+
 		// Check the column type
-		if($from->type != $to->type)
+		if($from_col->type != $to_col->type)
 		{
-			echo $from->name." type: ".$from->type." -> ".$to->type.PHP_EOL;
+			$changes[] = new \SqlDiff\Change("edit", "type", $from, $from_key, $to, $to_key);
 		}
 
 		// Check the column length
-		if($from->length != $to->length)
+		if($from_col->length != $to_col->length)
 		{
-			echo $from->name." length: ".$from->length." -> ".$to->length.PHP_EOL;
+			$changes[] = new \SqlDiff\Change("edit", "length", $from, $from_key, $to, $to_key);
 		}
+
+		return $changes;
 	}
 }
