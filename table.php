@@ -18,4 +18,16 @@ class Table
 	{
 		return $this->name.":\n".implode("\n", $this->columns)."\n".implode("\n", $this->keys).PHP_EOL;
 	}
+
+    public function get_column($name)
+    {
+        foreach ($this->columns as $column)
+        {
+            if ($name === $column->get_name())
+            {
+                return $column;
+            }
+        }
+        return new stdClass;
+    }
 }
